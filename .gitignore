@@ -1,0 +1,25 @@
+﻿# Node
+node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor
+.vscode/
+*.swp
+.DS_Store
+
+# Vite
+.dist/
+dist/
+*.local
+
+# Env
+.env
+.env.*
+
+# OS
+Thumbs.db
