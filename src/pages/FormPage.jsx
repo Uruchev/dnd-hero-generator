@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import StatAllocator from '../components/StatAllocator'
 import { useHero } from '../context/HeroContext'
-import { generateHero } from '../api/generateHero'
+import { generateHero } from '../api/n8n'
 
 const CLASSES = ['Warrior','Mage','Healer','Rogue','Ranger','Paladin']
 
@@ -16,28 +16,37 @@ export default function FormPage() {
   const [charClass, setCharClass] = useState(CLASSES[0])
   const [stats, setStats] = useState({})
   const [loading, setLoading] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
 
   const remaining = useMemo(() => 10 - Object.values(stats).reduce((a,b)=>a+b,0), [stats])
-  const canSubmit = remaining === 0 && name.trim().length > 0
+  const canSubmit = remaining === 0 && name.trim().length > 0 && !loading
 
   async function onSubmit(e) {
     e.preventDefault()
     if (!canSubmit) return
     setLoading(true)
+    setErrorMsg('')
     try {
       const payload = {
         name: name.trim(),
         description: description.trim(),
         class: charClass,
-        stats,
+        stats: {
+          STR: stats.STR || 0,
+          DEX: stats.DEX || 0,
+          CON: stats.CON || 0,
+          INT: stats.INT || 0,
+          WIS: stats.WIS || 0,
+          CHA: stats.CHA || 0,
+        },
       }
-      // Simulated API call
+      // Call n8n webhook
       const data = await generateHero(payload)
       setHeroData(data)
       navigate('/result')
     } catch (err) {
       console.error(err)
-      alert('Failed to generate hero. Please try again.')
+      setErrorMsg('Failed to generate hero. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -95,12 +104,17 @@ export default function FormPage() {
               disabled={!canSubmit}
               className={`px-5 py-2 rounded-lg font-semibold border border-white/10 shadow-glow ${canSubmit ? 'bg-brand-600 hover:bg-brand-500' : 'bg-gray-800 opacity-50 cursor-not-allowed'}`}
             >
-              Generate Hero
+              {loading ? 'Summoning hero…' : 'Generate Hero'}
             </button>
             <div className="text-sm text-gray-300/80">
               Points remaining: <span className={remaining === 0 ? 'text-emerald-300' : 'text-sky-300'}>{remaining}</span>
             </div>
           </div>
+          {errorMsg && (
+            <div className="text-sm text-red-300 bg-red-900/30 border border-red-500/30 rounded px-3 py-2">
+              {errorMsg}
+            </div>
+          )}
         </form>
       </div>
 
@@ -127,4 +141,3 @@ export default function FormPage() {
     </div>
   )
 }
-

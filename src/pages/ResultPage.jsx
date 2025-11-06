@@ -42,9 +42,18 @@ export default function ResultPage() {
               </div>
             ))}
           </div>
+
+          <div className="mt-6">
+            <button
+              type="button"
+              onClick={() => navigate('/')}
+              className="px-4 py-2 rounded-lg font-semibold border border-white/10 bg-gray-800 hover:bg-gray-700"
+            >
+              Generate another
+            </button>
+          </div>
         </motion.div>
       </div>
     </div>
   )
 }
-
