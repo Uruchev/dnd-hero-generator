@@ -69,3 +69,58 @@ npm run preview
 
 ## License
 This project is for educational/demo purposes. Add a license if you plan to distribute.
+## Backend (n8n) Integration
+
+The app posts hero requests to an n8n Webhook.
+
+- Env var: `VITE_N8N_WEBHOOK_URL` (see `.env.example`).
+- Default (if not set): `https://n8n.simeontsvetanovn8nworkflows.site/webhook/1be15846-8a97-43a1-a3e0-8fc393a95779`
+
+Frontend request payload:
+```json
+{
+  "name": "Aranel the Swift",
+  "description": "(optional) short prompt",
+  "class": "Warrior|Mage|Healer|Rogue|Ranger|Paladin",
+  "stats": { "STR": 2, "DEX": 3, "CON": 1, "INT": 1, "WIS": 2, "CHA": 1 }
+}
+```
+Expected response JSON (what the UI consumes):
+```json
+{
+  "hero_image": "https://.../portrait.jpg",
+  "background_image": "https://.../bg.jpg",
+  "name": "Aranel the Swift",
+  "class": "Warrior",
+  "description": "...",
+  "stats": { "STR": 2, "DEX": 3, "CON": 1, "INT": 1, "WIS": 2, "CHA": 1 }
+}
+```
+
+### n8n Webhook Node Setup
+Use your Production URL. Recommended settings:
+- HTTP Method: `POST`
+- Path: `1be15846-8a97-43a1-a3e0-8fc393a95779` (already set)
+- Authentication: `None` (or configure and mirror in FE)
+- Respond: `When Last Node Finishes` (or use a separate `Respond to Webhook` node if you want to control headers/body precisely)
+- Options → Response Headers:
+  - `Content-Type: application/json`
+  - `Access-Control-Allow-Origin: *` (or your site origin)
+  - `Access-Control-Allow-Headers: Content-Type`
+  - `Access-Control-Allow-Methods: POST, OPTIONS`
+
+Incoming request data in n8n:
+- JSON body is available on the Webhook node output as `{{$json.body}}`.
+  - Example: `{{$json.body.name}}`, `{{$json.body.class}}`, `{{$json.body.stats}}`
+- Query params (if you ever use GET) are under `{{$json.query}}`.
+
+Returning data to the FE:
+- If using `Respond: When Last Node Finishes`, make the last node output the JSON in the shape shown above.
+- If using a `Respond to Webhook` node, set
+  - Response Code: `200`
+  - Response Body: the JSON with keys `hero_image`, `background_image`, `name`, `class`, `description`, `stats`.
+  - Response Headers: same CORS headers as above.
+
+Notes:
+- CORS: The headers above allow the browser to call the webhook from any origin; for stricter security, replace `*` with your site’s origin.
+- Dev fallback: If the webhook is unreachable, the app falls back to a local mock so you can still test the UI.

@@ -1,0 +1,1 @@
+﻿export const N8N_WEBHOOK_URL = import.meta.env.VITE_N8N_WEBHOOK_URL || 'https://n8n.simeontsvetanovn8nworkflows.site/webhook/1be15846-8a97-43a1-a3e0-8fc393a95779';
