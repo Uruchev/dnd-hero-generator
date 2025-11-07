@@ -19,11 +19,12 @@ export type GenerateHeroResponse = {
   created_at: string;
 }
 
-const URL = (import.meta as any).env?.VITE_N8N_WEBHOOK_URL as string | undefined;
-if (!URL) {
-  // eslint-disable-next-line no-console
-  console.warn('[n8n] VITE_N8N_WEBHOOK_URL is not defined; using mock on network failure.');
-}
+// Use the same configuration source as the JS API helper
+// to avoid falling back to the mock unintentionally.
+// This reads VITE_N8N_WEBHOOK_URL and provides a sane default
+// (production webhook URL) when the env var is absent.
+import { N8N_WEBHOOK_URL as URL_FROM_CONFIG } from '../config'
+const URL = URL_FROM_CONFIG;
 
 /**
  * POSTs to the n8n webhook.

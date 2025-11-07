@@ -95,7 +95,8 @@ export default function FormPage() {
           </div>
 
           <div className="paper rounded-xl border border-white/10 p-5">
-            <StatAllocator value={{}} onChange={setStats} pool={10} />
+            {/* Pass the current stats so the allocator reflects state correctly */}
+            <StatAllocator value={stats} onChange={setStats} pool={10} />
           </div>
 
           <div className="flex items-center gap-3">
