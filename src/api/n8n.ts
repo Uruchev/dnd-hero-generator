@@ -41,12 +41,30 @@ export async function generateHero(payload: GenerateHeroPayload): Promise<Genera
 
     if (!res.ok) {
       const text = await res.text().catch(() => '');
-      throw new Error(`[n8n] ${res.status} ${res.statusText} — ${text}`);
+      throw new Error(`[n8n] ${res.status} ${res.statusText} - ${text}`);
     }
 
-    return (await res.json()) as GenerateHeroResponse;
+    const raw = await res.json();
+    // n8n 'Respond to Webhook' node often returns an Item shape
+    // like { json: {...} } or an array with the item at [0].
+    const item = Array.isArray(raw) ? raw[0] : raw;
+    const data: any = item?.json ?? item ?? {};
+
+    // Normalize various possible keys from the workflow
+    const normalized: GenerateHeroResponse = {
+      id: data.id ?? Date.now(),
+      name: data.name ?? payload.name,
+      description: data.description ?? payload.description ?? '',
+      class: data.class ?? data.cls ?? payload.class,
+      stats: data.stats ?? payload.stats,
+      hero_image: data.hero_image || data.image || data?.hero?.image || data?.result?.hero_image,
+      background_image: data.background_image || data.background || data?.hero?.background || data?.result?.background_image,
+      created_at: data.created_at ?? new Date().toISOString(),
+    } as GenerateHeroResponse;
+
+    return normalized;
   } catch (err) {
-    // Network, CORS, or URL misconfig — provide a local mock.
+    // Network, CORS, or URL misconfig - provide a local mock.
     // eslint-disable-next-line no-console
     console.warn('[n8n] Falling back to mock:', (err as Error)?.message || err);
     return mockResponse(payload);
